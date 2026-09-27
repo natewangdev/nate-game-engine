@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from fakes import FakeCapture, FakeTransport, failing_capture_factory
+from fakes import FakeCapture, FakeTransport, failing_capture_factory, vision_factories
 from nge2._engine import NGE2
 from nge2._errors import ClosedError, ConstructError
 
@@ -15,6 +15,7 @@ def _engine(tmp_path, port="FAKE1", capture_factory=None):
         capture_factory=capture_factory or (lambda b: FakeCapture(b)),
         transport_factory=lambda: FakeTransport(port=port),
         log_dir=tmp_path / "logs",
+        **vision_factories(),
     )
 
 
@@ -46,6 +47,7 @@ def test_backend_unavailable(tmp_path):
             capture_factory=failing_capture_factory,
             transport_factory=lambda: FakeTransport(),
             log_dir=tmp_path / "logs",
+            **vision_factories(),
         )
 
 

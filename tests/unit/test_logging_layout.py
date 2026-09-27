@@ -6,7 +6,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-from fakes import FakeCapture, FakeTransport
+from fakes import FakeCapture, FakeTransport, vision_factories
 from nge2._engine import NGE2
 from nge2.log import (
     allocate_log_file,
@@ -22,6 +22,7 @@ def _eng(tmp_path, port: str = "LOG1", **kwargs):
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: FakeTransport(port=port),
         log_dir=tmp_path / "logs",
+        **vision_factories(),
         **kwargs,
     )
 
@@ -91,6 +92,7 @@ def test_screenshot_soft_fail(tmp_path):
         capture_factory=lambda b: BoomCapture(b),
         transport_factory=lambda: FakeTransport(port="LOGE"),
         log_dir=tmp_path / "logs",
+        **vision_factories(),
     )
     get_logger("demo").error("still-ok")
     # Must not raise; log file should still contain the error line

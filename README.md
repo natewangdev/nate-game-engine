@@ -12,7 +12,8 @@ PyPI name: `nate-game-engine`.
 - Window client-area coordinates (DPI-aware)
 - Logging under root name `nge`
 - Find image / find color (`engine.find`)
-- Stubs: `ocr`, `yolo` (NotImplementedError)
+- OCR (RapidOCR) / YOLO (onnxruntime) — `engine.ocr`, `engine.yolo`
+- Stubs removed for find/ocr/yolo capability APIs (instance facades)
 
 Managed with Spec Kit — see `specs/001-nge2-mvp/`.
 

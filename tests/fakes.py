@@ -4,6 +4,9 @@ from __future__ import annotations
 
 import numpy as np
 
+from nge2.ocr import OcrLine
+from nge2.yolo import Detection
+
 
 class FakeCapture:
     def __init__(
@@ -62,6 +65,59 @@ class FakeTransport:
 
     def ping(self) -> bool:
         return self.command("PING", expect="PONG") == "PONG"
+
+
+class FakeOcr:
+    def __init__(self, *args, lines: list[OcrLine] | None = None, **kwargs) -> None:
+        self.lines = list(lines or [])
+        self.recognize_calls = 0
+        self.closed = 0
+
+    def close(self) -> None:
+        if self.closed:
+            return
+        self.closed += 1
+
+    def recognize(self, *, region=None) -> list[OcrLine]:
+        if self.closed:
+            from nge2._errors import ClosedError
+
+            raise ClosedError("OCR is closed; create a new NGE2 instance")
+        self.recognize_calls += 1
+        return list(self.lines)
+
+
+class FakeYolo:
+    def __init__(
+        self, *args, detections: list[Detection] | None = None, **kwargs
+    ) -> None:
+        self.detections = list(detections or [])
+        self.detect_calls = 0
+        self.closed = 0
+
+    def close(self) -> None:
+        if self.closed:
+            return
+        self.closed += 1
+
+    def detect(self, **kwargs) -> list[Detection]:
+        if self.closed:
+            from nge2._errors import ClosedError
+
+            raise ClosedError("YOLO is closed; create a new NGE2 instance")
+        self.detect_calls += 1
+        conf = float(kwargs.get("conf", 0.25))
+        hits = [d for d in self.detections if d.score >= conf]
+        hits.sort(key=lambda d: d.score, reverse=True)
+        return hits
+
+
+def vision_factories(**kwargs):
+    """Default test hooks so NGE2 construct does not need ONNX files."""
+    return {
+        "ocr_factory": kwargs.get("ocr_factory", lambda **k: FakeOcr(**k)),
+        "yolo_factory": kwargs.get("yolo_factory", lambda **k: FakeYolo(**k)),
+    }
 
 
 def failing_capture_factory(backend: str):

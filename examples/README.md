@@ -62,3 +62,17 @@ uv run python examples/find_smoke.py
 Grabs the screen, saves a crop as a self-template under `resource_dir`, then runs
 `find_image` / `find_images` (and optional `find_color`). Needs ESP32-S3 for construct.
 Library tests: `tests/unit/test_find.py` (FakeCapture, no hardware).
+
+## YOLO / OCR
+
+- **OCR**: RapidOCR (default models; no det/rec paths). Optional `ocr_kwargs`.
+- **YOLO**: place ONNX under `examples/models/` (placeholder stub included; replace with real YOLOv8-detect export).
+
+```powershell
+uv run python examples/yolo_smoke.py
+uv run python examples/ocr_smoke.py
+```
+
+`NGE2` loads OCR (RapidOCR) + YOLO at construct. Other smoke scripts that construct
+`NGE2` need a YOLO model under their `resource_dir` (default `models/yolo.onnx`).
+Point `RESOURCE_DIR` at `examples/` or copy `examples/models` into your resource root.

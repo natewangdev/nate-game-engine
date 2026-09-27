@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from fakes import FakeCapture, FakeTransport
+from fakes import FakeCapture, FakeTransport, vision_factories
 from nge2._engine import NGE2
 from nge2._errors import ConstructError, ControlError
 
@@ -14,6 +14,7 @@ def _eng(tmp_path, transport: FakeTransport, humanize=True):
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: transport,
         log_dir=tmp_path / "logs",
+        **vision_factories(),
     )
 
 

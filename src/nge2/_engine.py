@@ -7,8 +7,6 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
-from nge2 import ocr as ocr_mod
-from nge2 import yolo as yolo_mod
 from nge2._errors import ClosedError, ConstructError
 from nge2.capture import Capture, create_capture
 from nge2.control import Control
@@ -22,12 +20,35 @@ from nge2.log import (
     resolve_log_dir,
     save_error_screenshot,
 )
+from nge2.ocr import Ocr
 from nge2.window import Window, primary_screen_size, set_process_dpi_aware
+from nge2.yolo import Yolo
 
 log = get_logger(__name__)
 
 CaptureFactory = Callable[[str], Capture]
 TransportFactory = Callable[[], Any]
+VisionFactory = Callable[..., Any]
+
+
+def _resolve_model(resource_dir: Path, path: str | Path, *, label: str) -> Path:
+    p = Path(path)
+    if not p.is_absolute():
+        p = resource_dir / p
+    p = p.resolve()
+    if not p.is_file():
+        raise ConstructError(f"{label} not found: {p}")
+    return p
+
+
+def _resolve_optional(resource_dir: Path, path: str | Path | None) -> Path | None:
+    if path is None:
+        return None
+    p = Path(path)
+    if not p.is_absolute():
+        p = resource_dir / p
+    p = p.resolve()
+    return p  # may be missing; callers decide
 
 
 class NGE2:
@@ -44,6 +65,11 @@ class NGE2:
         capture_factory: CaptureFactory | None = None,
         transport_factory: TransportFactory | None = None,
         log_dir: str | Path | None = None,
+        yolo_model: str | Path = "models/yolo.onnx",
+        yolo_names: str | Path | None = "models/yolo.names",
+        ocr_kwargs: dict[str, Any] | None = None,
+        ocr_factory: VisionFactory | None = None,
+        yolo_factory: VisionFactory | None = None,
     ) -> None:
         if resource_dir is None or str(resource_dir).strip() == "":
             raise ConstructError("resource_dir is required")
@@ -77,7 +103,6 @@ class NGE2:
 
         set_process_dpi_aware()
 
-        # Capture first — fail fast if backend unavailable (no fallback).
         try:
             self._capture = self._capture_factory(self._capture_name)
         except Exception as exc:
@@ -89,11 +114,47 @@ class NGE2:
             capture=self._capture,
             window=self.window,
         )
-        self.ocr = ocr_mod
-        self.yolo = yolo_mod
         self.log = get_logger("engine")
 
-        # HID transport
+        # OCR / YOLO — load before HID so failure does not hold the serial port.
+        try:
+            if ocr_factory is not None:
+                self.ocr = ocr_factory(
+                    capture=self._capture,
+                    window=self.window,
+                    resource_dir=self.resource_dir,
+                    engine_kwargs=ocr_kwargs,
+                )
+            else:
+                self.ocr = Ocr(
+                    capture=self._capture,
+                    window=self.window,
+                    engine_kwargs=ocr_kwargs,
+                )
+            if yolo_factory is not None:
+                self.yolo = yolo_factory(
+                    capture=self._capture,
+                    window=self.window,
+                    resource_dir=self.resource_dir,
+                    model_path=yolo_model,
+                    names_path=yolo_names,
+                )
+            else:
+                ypath = _resolve_model(self.resource_dir, yolo_model, label="YOLO model")
+                npath = _resolve_optional(self.resource_dir, yolo_names)
+                self.yolo = Yolo(
+                    capture=self._capture,
+                    window=self.window,
+                    model_path=ypath,
+                    names_path=npath if npath is not None and npath.is_file() else None,
+                )
+        except ConstructError:
+            self._capture.release()
+            raise
+        except Exception as exc:
+            self._capture.release()
+            raise ConstructError(str(exc)) from exc
+
         try:
             if self._transport_factory is not None:
                 transport = self._transport_factory()
@@ -160,7 +221,6 @@ class NGE2:
         try:
             if self._closed:
                 raise RuntimeError("engine is closed")
-            # Full-frame grab then crop — avoids backends that need cv2 for regions.
             frame = self._capture.grab(region=None)
             client = self.window.client_region
             if client is not None:
@@ -194,6 +254,18 @@ class NGE2:
         if self._closed:
             return
         self._closed = True
+        try:
+            close_ocr = getattr(self.ocr, "close", None)
+            if callable(close_ocr):
+                close_ocr()
+        except Exception:  # noqa: BLE001
+            pass
+        try:
+            close_yolo = getattr(self.yolo, "close", None)
+            if callable(close_yolo):
+                close_yolo()
+        except Exception:  # noqa: BLE001
+            pass
         try:
             self._control.close()
         except Exception:  # noqa: BLE001

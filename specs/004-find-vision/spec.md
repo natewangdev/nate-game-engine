@@ -127,7 +127,7 @@ A script author finds pixels matching a color within tolerance inside an optiona
 
 ## Out of Scope
 
-- OCR / YOLO (separate features)
+- OCR / YOLO (see `005-ocr-yolo-onnx`)
 - Scale/rotation-invariant matching beyond basic template match
 - Caching frames across find calls
 - GPU-accelerated search
