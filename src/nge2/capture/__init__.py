@@ -94,9 +94,15 @@ class Capture:
             self._open_backend()
 
         if self.backend_name == "dxcam":
-            frame = self._dxcam.grab(region=region)  # type: ignore[union-attr]
-            if frame is None:
+            import time
+
+            # dxcam may return None when frames are requested back-to-back.
+            frame = None
+            for attempt in range(8):
                 frame = self._dxcam.grab(region=region)  # type: ignore[union-attr]
+                if frame is not None:
+                    break
+                time.sleep(0.01 * (attempt + 1))
             if frame is None:
                 raise CaptureError("dxcam returned no frame")
             return np.asarray(frame)

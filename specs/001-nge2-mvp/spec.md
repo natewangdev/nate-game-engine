@@ -124,7 +124,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 - **FR-011**: `window` MUST expose the bound hwnd (if any), window title, and client visual region (Win32 client area).
 - **FR-012**: `log` MUST support console and file logging under root name `nge`, with level from environment variable `NGE_LOG_LEVEL`. *(File path layout, `log_dir` constructor parameter, ERROR screenshots, and log line format without module names are superseded by feature `003-logging-layout` once implemented.)*
 - **FR-013**: `geom` MUST NOT be part of the stable public scripting surface; it exists to serve `control` humanize paths.
-- **FR-014**: `find` MUST exist as a public stub that raises `NotImplementedError` on use.
+- **FR-014**: `find` MUST exist as a public stub that raises `NotImplementedError` on use. *(Find-image / find-color behavior is superseded by feature `004-find-vision` once implemented.)*
 - **FR-015**: OCR and YOLO **recognition/detection behavior** is out of scope for this MVP (deferred). The installed package MUST still expose importable `ocr` and `yolo` modules as stubs; invoking their capability APIs MUST raise `NotImplementedError`. Stub presence alone is not MVP functional acceptance beyond importability and the explicit error.
 - **FR-016**: Default install MUST be full (all runtime deps for supported MVP modules in the base set), per constitution v1.2.0.
 - **FR-017**: Automated CI MUST cover pure logic with mocked serial and mocked capture; real ESP32-S3 and real screen checks are manual/optional.
@@ -163,7 +163,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 ## Out of Scope
 
 - OCR (RapidOCR) and YOLO detection **behavior** (specified later); MVP still ships importable stubs.
-- Find-image / find-color implementation (stub only).
+- Find-image / find-color implementation (stub only). *(Superseded by `004-find-vision`.)*
 - Foreground and background keyboard/mouse backends (pywinauto).
 - Multi-monitor capture selection beyond “first display”.
 - Non-Windows platforms.

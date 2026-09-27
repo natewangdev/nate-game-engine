@@ -6,16 +6,27 @@ import numpy as np
 
 
 class FakeCapture:
-    def __init__(self, backend: str = "dxcam") -> None:
+    def __init__(
+        self,
+        backend: str = "dxcam",
+        frame: np.ndarray | None = None,
+    ) -> None:
         self.backend_name = backend
         self._active = True
         self.released = 0
         self.grabs = 0
+        self.frame = frame
 
     def grab(self, region=None):
         if not self._active:
             self._active = True
         self.grabs += 1
+        if self.frame is not None:
+            frame = self.frame
+            if region:
+                l, t, r, b = (int(v) for v in region)
+                return frame[t:b, l:r].copy()
+            return frame.copy()
         if region:
             l, t, r, b = region
             h, w = max(1, b - t), max(1, r - l)

@@ -25,3 +25,7 @@ class ClosedError(NGEError):
 
 class WindowError(NGEError):
     """Raised when window queries or coordinate conversion fail."""
+
+
+class FindError(NGEError):
+    """Raised when find-image / find-color inputs or search fail."""

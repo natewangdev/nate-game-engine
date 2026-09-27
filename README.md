@@ -11,7 +11,8 @@ PyPI name: `nate-game-engine`.
 - Hardware HID control via ESP32-S3
 - Window client-area coordinates (DPI-aware)
 - Logging under root name `nge`
-- Stubs: `find`, `ocr`, `yolo` (NotImplementedError)
+- Find image / find color (`engine.find`)
+- Stubs: `ocr`, `yolo` (NotImplementedError)
 
 Managed with Spec Kit — see `specs/001-nge2-mvp/`.
 

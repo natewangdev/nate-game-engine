@@ -56,3 +56,6 @@ Thumbs.db
 *.log
 nge.log
 logs/
+
+# Smoke / local vision artifacts
+_find_smoke_tmpl.png
