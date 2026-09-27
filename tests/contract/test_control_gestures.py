@@ -13,7 +13,7 @@ def _eng(tmp_path, transport: FakeTransport, humanize=True):
         humanize=humanize,
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: transport,
-        enable_file_logging=False,
+        log_dir=tmp_path / "logs",
     )
 
 

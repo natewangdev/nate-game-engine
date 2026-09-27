@@ -27,6 +27,7 @@ dependencies = [
     "dxcam>=0.0.5",
     "mss>=9.0",
     "pyserial>=3.5",
+    "pillow>=12.3.0",
 ]
 
 [project.optional-dependencies]

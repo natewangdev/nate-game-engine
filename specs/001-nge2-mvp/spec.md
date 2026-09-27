@@ -122,7 +122,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 - **FR-009**: When `humanize` is `True`, moves MUST use internally generated human-like paths (`geom` is internal-only). The default `spread` for `move` and move-related APIs that accept `spread` (e.g. `drag`, `move_and_click`) MUST be `10.0` (pixels). `double_click` is excluded and MUST NOT apply landing scatter. When `humanize` is `False`, moves MUST be instantaneous and MUST ignore duration and spread.
 - **FR-010**: With `hwnd` set, move/click target coordinates MUST be client-relative; conversion MUST use Win32 client rect + client-to-screen. Without `hwnd`, coordinates MUST be screen absolute.
 - **FR-011**: `window` MUST expose the bound hwnd (if any), window title, and client visual region (Win32 client area).
-- **FR-012**: `log` MUST support console and file logging under root name `nge`, with level from environment variable `NGE_LOG_LEVEL`.
+- **FR-012**: `log` MUST support console and file logging under root name `nge`, with level from environment variable `NGE_LOG_LEVEL`. *(File path layout, `log_dir` constructor parameter, ERROR screenshots, and log line format without module names are superseded by feature `003-logging-layout` once implemented.)*
 - **FR-013**: `geom` MUST NOT be part of the stable public scripting surface; it exists to serve `control` humanize paths.
 - **FR-014**: `find` MUST exist as a public stub that raises `NotImplementedError` on use.
 - **FR-015**: OCR and YOLO **recognition/detection behavior** is out of scope for this MVP (deferred). The installed package MUST still expose importable `ocr` and `yolo` modules as stubs; invoking their capability APIs MUST raise `NotImplementedError`. Stub presence alone is not MVP functional acceptance beyond importability and the explicit error.
@@ -153,7 +153,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 - Hold default when omitted for clicks matches prior toolkit behavior: random human-like hold roughly 45–110 ms unless an explicit hold (seconds) is passed.
 - Mouse button down/up APIs do not move the pointer; they act at the current pointer position only (same as left_click / right_click).
 - Key-click inter-press interval uses a short human-like delay consistent with the prior toolkit (on the order of tens of milliseconds).
-- Default log file path is under the process cwd (e.g. `nge.log`) unless otherwise set via a documented logger helper.
+- Default log file path is under the process cwd (e.g. `nge.log`) unless otherwise set via a documented logger helper. *(Superseded by `003-logging-layout`: default `{cwd}/logs/{date}/nge-NNN.log`.)*
 - `grab(region=...)` always uses **screen** physical pixels, even when an hwnd is bound.
 - Capture on secondary-monitor windows remaining misaligned with first-display grabs is an accepted product limitation for this feature.
 - Foreground/background control modes remain API-reserved; only construction-time rejection is required in MVP (no partial pywinauto implementation).

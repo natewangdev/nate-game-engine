@@ -14,7 +14,7 @@ def _engine(tmp_path, port="FAKE1", capture_factory=None):
         capture="dxcam",
         capture_factory=capture_factory or (lambda b: FakeCapture(b)),
         transport_factory=lambda: FakeTransport(port=port),
-        enable_file_logging=False,
+        log_dir=tmp_path / "logs",
     )
 
 
@@ -45,7 +45,7 @@ def test_backend_unavailable(tmp_path):
             resource_dir=tmp_path,
             capture_factory=failing_capture_factory,
             transport_factory=lambda: FakeTransport(),
-            enable_file_logging=False,
+            log_dir=tmp_path / "logs",
         )
 
 

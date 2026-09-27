@@ -55,3 +55,4 @@ Thumbs.db
 # Runtime logs
 *.log
 nge.log
+logs/

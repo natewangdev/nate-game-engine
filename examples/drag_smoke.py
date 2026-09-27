@@ -16,12 +16,12 @@ from pathlib import Path
 # --- edit these ---
 # Each item: (x1, y1, x2, y2) — start then end (client-relative if HWND set)
 DRAGS = [
-    (26,196, 1450,1341),
+    (593,483, 321,842),
 ]
 DURATION = 1
 SPREAD = 0.0
 BUTTON = None  # "L" | "R"
-HWND = 721516  # None = screen coords; int = client-relative
+HWND = 262834  # None = screen coords; int = client-relative
 HUMANIZE = True
 CAPTURE = "dxcam"  # "dxcam" | "mss"
 RESOURCE_DIR = Path(".")
