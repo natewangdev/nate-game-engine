@@ -21,7 +21,7 @@ Behavioral contract for USB CDC transport to ESP32-S3 HID firmware (compatible w
 | PING | `PING` | `PONG` | Liveness |
 | MA | `MA <x> <y>` | `OK` | Absolute mouse move; device coords 0..32767 |
 | CLK | `CLK <L\|R> <hold_ms>` | `OK` | Click button with hold milliseconds |
-| BTN | `BTN <L\|R> <0\|1>` | `OK` | Button up/down (if used) |
+| BTN | `BTN <L\|R> <0\|1>` | `OK` | Button up (`0`) / down (`1`); required for public left/right_down/up |
 | KD | `KD <usage_id>` | `OK` | Key down |
 | KU | `KU <usage_id>` | `OK` | Key up |
 | KP | `KP <usage_id> <hold_ms>` | `OK` | Key press |
@@ -33,7 +33,7 @@ Behavioral contract for USB CDC transport to ESP32-S3 HID firmware (compatible w
 
 - Pixel → device: scale primary screen size to 0..32767 (same approach as prior controller)
 - Key names → Usage IDs: USB HID Keyboard/Keypad page 0x07 table equivalent to prior `keymap.KEYS` / `MODIFIERS`
-- Errors: empty reply / `ERR` / unexpected → transport error; do not leave partial key state undocumented—prefer STOP on close
+- Errors: empty reply / `ERR` / unexpected → transport error; do not leave partial key/button state undocumented—prefer STOP on close (MUST release held mouse buttons and keys)
 
 ## Host responsibilities
 

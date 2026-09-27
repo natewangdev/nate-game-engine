@@ -77,7 +77,7 @@ Chinese companion (human-readable only): [`tasks.zh-CN.md`](./tasks.zh-CN.md).
 
 **Goal**: ESP32-S3 HID via serial: auto-discover, busy-port fail, move/click/keys with humanize/geom; keymap Usage IDs per prior contract
 
-**Independent Test**: Mocked `SerialTransport` exercises move (humanize on/off), clicks with hold, move_and_click, key_down/up/click; construct fails when no device / port busy
+**Independent Test**: Mocked `SerialTransport` exercises move (humanize on/off), clicks with hold, button down/up (`BTN`), move_and_click, key_down/up/click; construct fails when no device / port busy
 
 ### Tests for User Story 2
 
@@ -93,6 +93,8 @@ Chinese companion (human-readable only): [`tasks.zh-CN.md`](./tasks.zh-CN.md).
 - [x] T024 [US2] Implement control facade `move` / `left_click` / `right_click` / `move_and_click` / `key_click` / `key_down` / `key_up` with pixel→0..32767 mapping and default hold/intervals in `src/nge2/control/__init__.py`
 - [x] T025 [US2] Integrate HID open (auto-discover + ping), port registry busy fail, and `close()` STOP+release into `src/nge2/_engine.py` for `control_mode=2`
 - [x] T026 [US2] When `humanize=False`, ensure `move` is instantaneous and ignores `duration`/`spread` in `src/nge2/control/__init__.py`
+- [x] T041 [P] [US2] Extend control contract tests for `BTN` (`left_down`/`left_up`/`right_down`/`right_up`) in `tests/contract/test_control_hid.py`
+- [x] T042 [US2] Implement `left_down` / `left_up` / `right_down` / `right_up` via `BTN L|R 0|1` in `src/nge2/control/__init__.py` (no auto-pair; current position only)
 
 **Checkpoint**: US2 independently testable with fake transport
 
@@ -184,7 +186,7 @@ T020 tests/contract/test_control_hid.py
 T021 src/nge2/control/_keymap.py
 T022 src/nge2/control/_transport.py
 T023 src/nge2/geom/__init__.py
-# then sequential: T024 → T025 → T026
+# then sequential: T024 → T025 → T026 → T041 → T042
 ```
 
 ---

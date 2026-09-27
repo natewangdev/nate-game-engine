@@ -18,8 +18,8 @@
 
 ## 3. HID 传输与键位
 
-- **决策**：移植既有串口行协议与 keymap Usage ID 表到 `control/_transport.py`、`control/_keymap.py`。
-- **理由**：固件已存在；规格要求 keymap 等价。
+- **决策**：移植既有串口行协议与 keymap Usage ID 表到 `control/_transport.py`、`control/_keymap.py`。绝对移动 `MA`；完整点击 `CLK`；左右键按下/抬起 `BTN`（对应 `left_down`/`left_up`/`right_down`/`right_up`）；键盘 `KD`/`KU`/`KP`/`MOD`；关闭时 `STOP`（须释放按住的键鼠）。
+- **理由**：固件已存在；规格要求 keymap 等价与 `BTN` 公开 API。
 - **备选**：改协议 / 相对鼠标 — 超出范围或破坏兼容。
 
 ## 4. 拟人 / geom

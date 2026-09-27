@@ -42,7 +42,7 @@ In-process entities only (no persistence DB).
 | screen_size | (int, int) | Primary metrics for HID absolute mapping |
 | humanize | bool | Copied from engine |
 
-**Operations**: `move`, `left_click`, `right_click`, `move_and_click`, `key_click`, `key_down`, `key_up`.
+**Operations**: `move`, `left_click`, `right_click`, `left_down`, `left_up`, `right_down`, `right_up`, `move_and_click`, `key_click`, `key_down`, `key_up`.
 
 ### WindowBinding
 

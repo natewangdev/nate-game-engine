@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Hardware smoke test: move the mouse via ESP32-S3 HID.
+"""Hardware smoke test: move_and_click via ESP32-S3 HID.
 
 Requires a connected device. Does not run in CI.
 
 Edit the constants below, then from repo root::
 
-    uv run python examples/move_smoke.py
+    uv run python examples/move_and_click_smoke.py
 """
 
 from __future__ import annotations
@@ -14,15 +14,15 @@ import sys
 from pathlib import Path
 
 # --- edit these ---
-MOVES = [
-    (2238, 1227),
-    (388, 600),
+CLICKS = [
+    (191,672),
 ]
 DURATION = 0.5
 SPREAD = 0.0
-HWND = 265098  # None = screen coords; int = client-relative
+HOLD = None  # seconds; None = random short hold
+BUTTON = "L"  # "L" | "R"
+HWND = 459984  # None = screen coords; int = client-relative
 HUMANIZE = True
-CLICK = False
 CAPTURE = "dxcam"  # "dxcam" | "mss"
 RESOURCE_DIR = Path(".")
 # ------------------
@@ -37,8 +37,9 @@ def main() -> int:
         return 2
 
     print(
-        f"NGE2 move smoke: moves={MOVES} duration={DURATION} "
-        f"spread={SPREAD} hwnd={HWND!r} humanize={HUMANIZE} click={CLICK}"
+        f"NGE2 move_and_click smoke: clicks={CLICKS} duration={DURATION} "
+        f"spread={SPREAD} hold={HOLD!r} button={BUTTON!r} "
+        f"hwnd={HWND!r} humanize={HUMANIZE}"
     )
 
     try:
@@ -58,12 +59,16 @@ def main() -> int:
             print(f"client_region={engine.window.client_region}")
         duration = None if not HUMANIZE else DURATION
         spread = 0.0 if not HUMANIZE else SPREAD
-        for i, (x, y) in enumerate(MOVES, start=1):
-            engine.control.move(x, y, duration=duration, spread=spread)
-            print(f"move {i}/{len(MOVES)} done -> ({x}, {y})")
-        if CLICK:
-            engine.control.left_click()
-            print("click done")
+        for i, (x, y) in enumerate(CLICKS, start=1):
+            engine.control.move_and_click(
+                x,
+                y,
+                button=BUTTON,
+                hold=HOLD,
+                duration=duration,
+                spread=spread,
+            )
+            print(f"click {i}/{len(CLICKS)} done -> ({x}, {y})")
     except Exception as exc:  # noqa: BLE001
         print(f"Failed: {exc}", file=sys.stderr)
         return 1

@@ -118,6 +118,23 @@ class Control:
     def right_click(self, hold: float | None = None) -> None:
         self.move_and_click(button="R", hold=hold)
 
+    def left_down(self) -> None:
+        self._button("L", down=True)
+
+    def left_up(self) -> None:
+        self._button("L", down=False)
+
+    def right_down(self) -> None:
+        self._button("R", down=True)
+
+    def right_up(self) -> None:
+        self._button("R", down=False)
+
+    def _button(self, button: str, *, down: bool) -> None:
+        self._ensure_open()
+        state = 1 if down else 0
+        self._transport.command(f"BTN {button.upper()} {state}")
+
     def move_and_click(
         self,
         x: float | None = None,

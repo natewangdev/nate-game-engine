@@ -41,10 +41,10 @@ with nge2.NGE2(resource_dir=".", capture="dxcam") as engine:
 
 Requires ESP32-S3. See `examples/README.md`.
 
+Edit constants in `examples/move_smoke.py`, then:
+
 ```powershell
 uv run python examples/move_smoke.py
-uv run python examples/move_smoke.py --x 800 --y 450 --duration 0.4
-uv run python examples/move_smoke.py --hwnd 0xYOURHWND --x 100 --y 100 --click
 ```
 
 Validation details: `specs/001-nge2-mvp/quickstart.md`.

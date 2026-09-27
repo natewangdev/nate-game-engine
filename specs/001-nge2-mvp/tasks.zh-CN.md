@@ -10,7 +10,7 @@
 
 ## 格式
 
-`- [ ] [TaskID] [P?] [Story?] 描述（含路径）` — 与英文版任务一一对应（T001–T040）。
+`- [ ] [TaskID] [P?] [Story?] 描述（含路径）` — 与英文版任务一一对应（T001–T042）。
 
 ## 阶段一览
 
@@ -19,7 +19,7 @@
 | Phase 1 Setup | 移除旧包、建 `src/nge2`、pyproject、测试目录、README | T001–T005 |
 | Phase 2 Foundational | log、空壳、错误、端口登记、NGE2 骨架、导出 | T006–T012 |
 | Phase 3 US1 截屏 | capture grab/release/重建 + 测试 | T013–T017 |
-| Phase 4 US2 HID | keymap/transport/geom/control + 测试 | T018–T026 |
+| Phase 4 US2 HID | keymap/transport/geom/control + 测试；左右键 down/up | T018–T026, T041–T042 |
 | Phase 5 US3 窗口 | DPI、客户区坐标、window API | T027–T031 |
 | Phase 6 US4 日志/关闭 | mode 0/1、close、日志文件 | T032–T035 |
 | Phase 7 Polish | 版本测试、ruff、README、pytest、真机备忘 | T036–T040 |
@@ -27,7 +27,7 @@
 ## 独立验收（与英文版相同）
 
 - **US1**：假 capture（及假 HID）下 grab/区域/release 后再 grab；后端不可用构造失败  
-- **US2**：假 transport 下 move/click/keys；无设备/端口忙构造失败  
+- **US2**：假 transport 下 move/click/button down-up/keys；无设备/端口忙构造失败  
 - **US3**：坐标换算与 hwnd 相对移动  
 - **US4**：mode 0/1 失败、日志文件、close 后不可用  
 
@@ -35,4 +35,4 @@
 
 Setup → Foundational → **US1** → **US2** → US3 → US4 → Polish  
 
-详细任务条文以英文 `tasks.md` 为准（实现后 T001–T040 均已勾选完成）。
+详细任务条文以英文 `tasks.md` 为准（T001–T042 均已勾选完成）。

@@ -10,7 +10,7 @@
 
 - **NGE2**：资源目录、截屏后端、hwnd、humanize、control_mode、closed；拥有 Capture / Control / Window。
 - **CaptureSession**：后端名、是否活跃；`grab` / `release`；release 后 grab 重建。
-- **ControlSession（HID）**：端口、指针位置、屏幕尺寸；键鼠 API。
+- **ControlSession（HID）**：端口、指针位置、屏幕尺寸；键鼠 API（含左右键点击与按下/抬起）。
 - **WindowBinding**：hwnd、标题、客户区本地/屏幕矩形。
 - **HumanizePath**：路点与 spread。
 - **KeyBinding**：友好名 ↔ Usage ID / 修饰键。
