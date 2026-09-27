@@ -9,6 +9,7 @@ def test_no_hwnd_passthrough():
     assert w.title == ""
     assert w.client_region is None
     assert w.client_to_screen(10, 20) == (10, 20)
+    assert w.screen_to_client(10, 20) == (10, 20)
 
 
 def test_client_region_dataclass():

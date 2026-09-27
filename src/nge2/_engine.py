@@ -7,7 +7,6 @@ from pathlib import Path
 from types import TracebackType
 from typing import Any
 
-from nge2 import find as find_mod
 from nge2 import ocr as ocr_mod
 from nge2 import yolo as yolo_mod
 from nge2._errors import ClosedError, ConstructError
@@ -15,6 +14,7 @@ from nge2.capture import Capture, create_capture
 from nge2.control import Control
 from nge2.control import _port_registry as port_registry
 from nge2.control._transport import SerialTransport, TransportError, find_port
+from nge2.find import Find
 from nge2.log import (
     attach_engine_logging,
     detach_handlers,
@@ -84,7 +84,11 @@ class NGE2:
             raise ConstructError(str(exc)) from exc
 
         self.window = Window(hwnd)
-        self.find = find_mod
+        self.find = Find(
+            resource_dir=self.resource_dir,
+            capture=self._capture,
+            window=self.window,
+        )
         self.ocr = ocr_mod
         self.yolo = yolo_mod
         self.log = get_logger("engine")

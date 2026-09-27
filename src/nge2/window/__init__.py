@@ -104,3 +104,11 @@ class Window:
         region = self._client_region(self._hwnd)
         sx, sy, _, _ = region.screen
         return sx + x, sy + y
+
+    def screen_to_client(self, x: float, y: float) -> tuple[float, float]:
+        """Map screen physical pixels to client-relative coordinates."""
+        if self._hwnd is None:
+            return x, y
+        region = self._client_region(self._hwnd)
+        sx, sy, _, _ = region.screen
+        return x - sx, y - sy

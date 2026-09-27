@@ -50,3 +50,15 @@ uv run python examples/log_smoke.py
 
 Writes `{LOG_DIR}/{YYYY-MM-DD}/nge-NNN.log` and on ERROR a JPEG under `screenshot/`.
 Still needs ESP32-S3 for `NGE2` construct.
+
+## Find image / color
+
+Edit constants in `examples/find_smoke.py` (`TEMPLATE_REGION`, `HWND`, …), then:
+
+```powershell
+uv run python examples/find_smoke.py
+```
+
+Grabs the screen, saves a crop as a self-template under `resource_dir`, then runs
+`find_image` / `find_images` (and optional `find_color`). Needs ESP32-S3 for construct.
+Library tests: `tests/unit/test_find.py` (FakeCapture, no hardware).
