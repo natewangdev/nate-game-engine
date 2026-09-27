@@ -124,7 +124,7 @@
 - **FR-009**：`humanize=True` 时移动**必须**使用内部拟人路径（`geom` 仅内部）。`move` 及接受 `spread` 的相关移动 API（如 `drag`、`move_and_click`）的默认 `spread` **必须**为 `10.0`（像素）。`double_click` 除外，**不得**做落点散布。`humanize=False` 时**必须**瞬时移动并忽略 duration/spread。
 - **FR-010**：有 `hwnd` 时移动/点击目标**必须**为客户区相对坐标，换算使用 Win32 客户区 + ClientToScreen；无 `hwnd` 时为屏幕绝对坐标。
 - **FR-011**：`window` **必须**提供绑定 hwnd（若有）、标题与客户区可视化区域。
-- **FR-012**：`log` **必须**支持控制台与文件日志，根名 `nge`，级别由环境变量 `NGE_LOG_LEVEL` 控制。
+- **FR-012**：`log` **必须**支持控制台与文件日志，根名 `nge`，级别由环境变量 `NGE_LOG_LEVEL` 控制。*（文件目录布局、`log_dir` 构造参数、ERROR 截图、日志行不含模块名等，在实现 `003-logging-layout` 后以该功能规格为准。）*
 - **FR-013**：`geom` **不得**作为稳定对外脚本表面；仅服务 `control` 拟人路径。
 - **FR-014**：`find` **必须**作为公开空壳，使用时抛出 `NotImplementedError`。
 - **FR-015**：OCR/YOLO 的**识别/检测行为**不在本 MVP 范围（延后）。已安装包仍**必须**暴露可 import 的 `ocr`、`yolo` 空壳模块；调用其能力 API 时**必须**抛出 `NotImplementedError`。空壳可导入与显式错误之外，不作为 MVP 功能验收。
@@ -155,7 +155,7 @@
 - 点击省略 hold 时，默认行为对齐既有工具包：约 45–110 ms 的随机拟人按下时长，除非显式传入 hold（秒）。
 - 鼠标按下/抬起 API 不移动指针，仅作用于当前指针位置（与 left_click / right_click 相同）。
 - key_click 间隔使用与既有工具包一致的短拟人延迟（数十毫秒量级）。
-- 默认日志文件位于进程 cwd（如 `nge.log`），除非通过文档化的 logger 辅助另行设置。
+- 默认日志文件位于进程 cwd（如 `nge.log`），除非通过文档化的 logger 辅助另行设置。*（由 `003-logging-layout` 取代：默认 `{cwd}/logs/{日期}/nge-NNN.log`。）*
 - `grab(region=...)` **始终**使用**屏幕**物理像素，即使绑定了 hwnd。
 - 副屏窗口与第一屏截图不对齐，为本功能接受的产品限制。
 - 前台/后台键鼠模式仅 API 预留；MVP 只需构造期拒绝，不实现 pywinauto。

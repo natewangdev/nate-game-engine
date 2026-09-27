@@ -64,7 +64,11 @@ class Capture:
                 import dxcam
 
                 _silence_comtypes_finalizer()
-                self._dxcam = dxcam.create(output_color="BGR")
+                # Prefer numpy processor so OpenCV (cv2) is not required.
+                self._dxcam = dxcam.create(
+                    output_color="BGR",
+                    processor_backend="numpy",
+                )
                 self._active = True
                 log.info("Capture backend: dxcam")
                 return

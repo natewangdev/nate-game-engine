@@ -15,7 +15,13 @@ from nge2.capture import Capture, create_capture
 from nge2.control import Control
 from nge2.control import _port_registry as port_registry
 from nge2.control._transport import SerialTransport, TransportError, find_port
-from nge2.log import ensure_default_file_logging, get_logger
+from nge2.log import (
+    attach_engine_logging,
+    detach_handlers,
+    get_logger,
+    resolve_log_dir,
+    save_error_screenshot,
+)
 from nge2.window import Window, primary_screen_size, set_process_dpi_aware
 
 log = get_logger(__name__)
@@ -37,7 +43,7 @@ class NGE2:
         control_mode: int = 2,
         capture_factory: CaptureFactory | None = None,
         transport_factory: TransportFactory | None = None,
-        enable_file_logging: bool = True,
+        log_dir: str | Path | None = None,
     ) -> None:
         if resource_dir is None or str(resource_dir).strip() == "":
             raise ConstructError("resource_dir is required")
@@ -57,9 +63,9 @@ class NGE2:
         self._held_port: str | None = None
         self._capture_factory = capture_factory or create_capture
         self._transport_factory = transport_factory
-
-        if enable_file_logging:
-            ensure_default_file_logging()
+        self.log_dir = resolve_log_dir(log_dir)
+        self._log_path: Path | None = None
+        self._log_handlers: list = []
 
         if self._control_mode in (0, 1):
             raise ConstructError(
@@ -131,13 +137,44 @@ class NGE2:
             screen_size=primary_screen_size(),
             window=self.window,
         )
+
+        self._log_path, self._log_handlers = attach_engine_logging(
+            self.log_dir,
+            self._on_error_screenshot,
+        )
         log.info(
-            "NGE2 ready capture=%s hwnd=%s humanize=%s port=%s",
+            "NGE2 ready capture=%s hwnd=%s humanize=%s port=%s log=%s",
             self._capture_name,
             hwnd,
             self._humanize,
             self._held_port,
+            self._log_path,
         )
+
+    def _on_error_screenshot(self, message: str) -> None:
+        warn = get_logger("log")
+        try:
+            if self._closed:
+                raise RuntimeError("engine is closed")
+            # Full-frame grab then crop — avoids backends that need cv2 for regions.
+            frame = self._capture.grab(region=None)
+            client = self.window.client_region
+            if client is not None:
+                l, t, r, b = client.screen
+                h, w = frame.shape[:2]
+                l = max(0, min(int(l), w))
+                r = max(0, min(int(r), w))
+                t = max(0, min(int(t), h))
+                b = max(0, min(int(b), h))
+                if r > l and b > t:
+                    frame = frame[t:b, l:r].copy()
+            if self._log_path is None:
+                raise RuntimeError("log path not set")
+            shot_dir = self._log_path.parent / "screenshot"
+            path = save_error_screenshot(frame, message, shot_dir)
+            warn.warning("ERROR screenshot saved: %s", path)
+        except Exception as exc:  # noqa: BLE001
+            warn.warning("ERROR screenshot failed: %s", exc)
 
     @property
     def capture(self) -> Capture:
@@ -164,6 +201,8 @@ class NGE2:
         port_registry.release(self._held_port)
         self._held_port = None
         log.info("NGE2 closed")
+        detach_handlers(self._log_handlers)
+        self._log_handlers = []
 
     def _ensure_open(self) -> None:
         if self._closed:

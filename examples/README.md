@@ -39,3 +39,14 @@ After `002-control-gestures`, `engine.control` also supports:
 - `hotkey(*keys)` (alias of `key_click(*keys)`)
 
 Covered by `tests/contract/test_control_gestures.py` (no hardware). Hardware: `examples/drag_smoke.py`.
+
+## Logging
+
+Edit constants in `examples/log_smoke.py` (`LOG_DIR`, `HWND`, `ERROR_MESSAGE`, …), then:
+
+```powershell
+uv run python examples/log_smoke.py
+```
+
+Writes `{LOG_DIR}/{YYYY-MM-DD}/nge-NNN.log` and on ERROR a JPEG under `screenshot/`.
+Still needs ESP32-S3 for `NGE2` construct.

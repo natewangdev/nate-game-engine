@@ -25,5 +25,5 @@ def test_mode_0_1_rejected(tmp_path):
                 control_mode=mode,
                 capture_factory=lambda b: FakeCapture(b),
                 transport_factory=lambda: FakeTransport(),
-                enable_file_logging=False,
+                log_dir=tmp_path / "logs",
             )
