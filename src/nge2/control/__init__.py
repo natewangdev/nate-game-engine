@@ -16,6 +16,7 @@ from nge2.window import Window
 log = get_logger(__name__)
 
 HID_MAX = 32767
+DEFAULT_SPREAD = 10.0
 
 
 class Transport(Protocol):
@@ -30,6 +31,17 @@ class Transport(Protocol):
 
 def _clamp(v: float, lo: float, hi: float) -> float:
     return lo if v < lo else (min(v, hi))
+
+
+def _require_xy_pair(x: float | None, y: float | None, *, what: str) -> None:
+    if (x is None) ^ (y is None):
+        raise ControlError(f"{what} requires both x and y, or neither")
+
+
+def _require_positive_int(value: object, *, name: str) -> int:
+    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ControlError(f"{name} must be a positive integer")
+    return value
 
 
 class Control:
@@ -92,7 +104,7 @@ class Control:
         x: float,
         y: float,
         duration: float | None = None,
-        spread: float = 0.0,
+        spread: float = DEFAULT_SPREAD,
     ) -> None:
         self._ensure_open()
         sx, sy = self._to_screen(x, y)
@@ -135,6 +147,65 @@ class Control:
         state = 1 if down else 0
         self._transport.command(f"BTN {button.upper()} {state}")
 
+    def drag(
+        self,
+        x1: float,
+        y1: float,
+        x2: float,
+        y2: float,
+        *,
+        button: str = "L",
+        duration: float | None = None,
+        spread: float = DEFAULT_SPREAD,
+    ) -> None:
+        """Move to start, press button, move to end, release (default left)."""
+        self._ensure_open()
+        btn = button.upper()
+        if btn not in ("L", "R"):
+            raise ControlError(f"drag button must be 'L' or 'R', got {button!r}")
+        self.move(x1, y1, duration=duration, spread=spread)
+        self._button(btn, down=True)
+        time.sleep(self.rng.uniform(0.02, 0.06))
+        try:
+            self.move(x2, y2, duration=duration, spread=spread)
+        finally:
+            self._button(btn, down=False)
+
+    def scroll(self, direction: str, notches: int = 1) -> None:
+        """Scroll wheel at current position. ``direction`` is ``up`` or ``down``."""
+        self._ensure_open()
+        n = _require_positive_int(notches, name="notches")
+        d = direction.lower().strip()
+        if d not in ("up", "down"):
+            raise ControlError(f"scroll direction must be 'up' or 'down', got {direction!r}")
+        delta = n if d == "up" else -n
+        delta = int(_clamp(delta, -127, 127))
+        self._transport.command(f"WHEEL {delta}")
+
+    def double_click(
+        self,
+        x: float | None = None,
+        y: float | None = None,
+        *,
+        hold: float | None = None,
+        interval: float | None = None,
+        duration: float | None = None,
+    ) -> None:
+        """Left-button double-click at optional target or current position.
+
+        Both clicks occur at the same point (pre-move uses ``spread=0``; no scatter).
+        """
+        self._ensure_open()
+        _require_xy_pair(x, y, what="double_click")
+        if x is not None and y is not None:
+            self.move(x, y, duration=duration, spread=0.0)
+            time.sleep(self.rng.uniform(0.02, 0.06))
+        self.move_and_click(button="L", hold=hold)
+        gap = interval if interval is not None else self.rng.uniform(0.04, 0.08)
+        if gap > 0:
+            time.sleep(gap)
+        self.move_and_click(button="L", hold=hold)
+
     def move_and_click(
         self,
         x: float | None = None,
@@ -143,7 +214,7 @@ class Control:
         button: str = "L",
         hold: float | None = None,
         duration: float | None = None,
-        spread: float = 0.0,
+        spread: float = DEFAULT_SPREAD,
     ) -> None:
         self._ensure_open()
         if x is not None and y is not None:
@@ -188,6 +259,10 @@ class Control:
                     self._transport.command("MOD 0")
                 except Exception:  # noqa: BLE001
                     pass
+
+    def hotkey(self, *keys: str, hold: float | None = None) -> None:
+        """Alias of :meth:`key_click` for modifier chords (``*keys`` form only)."""
+        self.key_click(*keys, hold=hold)
 
     def close(self) -> None:
         if self._closed:
