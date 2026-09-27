@@ -34,14 +34,14 @@ engine = nge2.NGE2(
 
 | Method | Signature (conceptual) | Notes |
 |--------|------------------------|-------|
-| move | `move(x, y, duration=None, spread=0.0) -> None` | Client-relative if hwnd else screen; humanize rules per spec |
+| move | `move(x, y, duration=None, spread=10.0) -> None` | Client-relative if hwnd else screen; humanize rules per spec; default spread 10 px |
 | left_click | `left_click(hold=None) -> None` | Current position; full click via `CLK` |
 | right_click | `right_click(hold=None) -> None` | Current position; full click via `CLK` |
 | left_down | `left_down() -> None` | Current position; press only (`BTN L 1`); no auto-up |
 | left_up | `left_up() -> None` | Current position; release only (`BTN L 0`) |
 | right_down | `right_down() -> None` | Current position; press only (`BTN R 1`); no auto-up |
 | right_up | `right_up() -> None` | Current position; release only (`BTN R 0`) |
-| move_and_click | `move_and_click(x, y, hold=None, duration=None, spread=0.0, button="L") -> None` | |
+| move_and_click | `move_and_click(x, y, hold=None, duration=None, spread=10.0, button="L") -> None` | Default spread matches `move` |
 | key_click | `key_click(key: str, ...) -> None` | Supports chords/modifiers; down→up + interval |
 | key_down | `key_down(key: str) -> None` | |
 | key_up | `key_up(key: str) -> None` | |

@@ -121,7 +121,7 @@
 - **FR-006**：每个 `NGE2` 实例**必须**拥有自己的 `capture` 生命周期（非进程全局单例）。
 - **FR-007**：`capture` **必须**支持抓取第一屏全屏与可选区域；返回 BGR 图像数组。区域坐标**必须**为屏幕物理像素。**必须**提供释放后端操作。release 之后，同一引擎上后续 `grab()` **必须**重建同一后端并成功。
 - **FR-008**：本功能 `control` **必须**仅实现硬件 HID（ESP32-S3）：移动、当前位置左右键点击（含 hold，省略时用默认）、当前位置左右键按下与抬起（不自动配对，区别于完整点击）、move-and-click、key_click（down→up 与间隔，支持修饰键）、key_down、key_up。友好键名到 HID Usage ID 的映射**必须**与既有 nge 工具包 keymap 契约等价。按下/抬起**必须**使用 HID `BTN` 行命令；完整点击可继续使用 `CLK`。
-- **FR-009**：`humanize=True` 时移动**必须**使用内部拟人路径（`geom` 仅内部）。`humanize=False` 时**必须**瞬时移动并忽略 duration/spread。
+- **FR-009**：`humanize=True` 时移动**必须**使用内部拟人路径（`geom` 仅内部）。`move` 及接受 `spread` 的相关移动 API（如 `drag`、`move_and_click`）的默认 `spread` **必须**为 `10.0`（像素）。`double_click` 除外，**不得**做落点散布。`humanize=False` 时**必须**瞬时移动并忽略 duration/spread。
 - **FR-010**：有 `hwnd` 时移动/点击目标**必须**为客户区相对坐标，换算使用 Win32 客户区 + ClientToScreen；无 `hwnd` 时为屏幕绝对坐标。
 - **FR-011**：`window` **必须**提供绑定 hwnd（若有）、标题与客户区可视化区域。
 - **FR-012**：`log` **必须**支持控制台与文件日志，根名 `nge`，级别由环境变量 `NGE_LOG_LEVEL` 控制。
