@@ -18,7 +18,7 @@ Chinese companion: [`research.zh-CN.md`](./research.zh-CN.md).
 
 ## 3. HID transport & keymap
 
-- **Decision**: Port behavioral contract from prior `SerialTransport` (CDC line protocol, Espressif VID hint `303a`, PING/PONG on open) and `keymap` Usage ID tables into `control/_transport.py` and `control/_keymap.py`. Absolute mouse via `MA`; clicks `CLK`; keys `KD`/`KU`/`KP`; modifiers `MOD`; emergency `STOP` on close.
+- **Decision**: Port behavioral contract from prior `SerialTransport` (CDC line protocol, Espressif VID hint `303a`, PING/PONG on open) and `keymap` Usage ID tables into `control/_transport.py` and `control/_keymap.py`. Absolute mouse via `MA`; full clicks `CLK`; button down/up `BTN L|R 0|1` for `left_down`/`left_up`/`right_down`/`right_up`; keys `KD`/`KU`/`KP`; modifiers `MOD`; emergency `STOP` on close (releases held buttons/keys).
 - **Rationale**: Existing firmware already speaks this protocol; rewriting protocol would break devices. Spec requires keymap equivalence.
 - **Alternatives considered**: Relative HID mouse — incompatible with prior absolute mapping. New JSON protocol — requires firmware change (out of scope).
 

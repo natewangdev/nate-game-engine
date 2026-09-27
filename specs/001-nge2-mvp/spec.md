@@ -44,7 +44,7 @@ A script author connects to an ESP32-S3 HID device (auto-discovered serial port)
 
 **Why this priority**: HID input delivery is the core actuation value of this MVP.
 
-**Independent Test**: With a real device or a mocked serial transport, exercise move, left/right click with hold, move-and-click, key down/up/click (including modifiers); verify failure when no device is found at construction.
+**Independent Test**: With a real device or a mocked serial transport, exercise move, left/right click with hold, left/right button down/up, move-and-click, key down/up/click (including modifiers); verify failure when no device is found at construction.
 
 **Acceptance Scenarios**:
 
@@ -54,8 +54,9 @@ A script author connects to an ESP32-S3 HID device (auto-discovered serial port)
 4. **Given** an engine with `humanize=True`, **When** the author moves to a target with duration and spread, **Then** the pointer follows a generated human-like path and the final point lies within the spread disk when spread > 0.
 5. **Given** an engine with `humanize=False`, **When** the author moves with duration/spread arguments, **Then** the pointer jumps instantly and duration/spread have no effect.
 6. **Given** a constructed engine, **When** the author left-clicks or right-clicks at the current position with an optional hold, **Then** a click is issued at the current pointer position for the specified or default hold duration.
-7. **Given** a constructed engine, **When** the author calls move-and-click to a target, **Then** the pointer moves (per humanize rules) then clicks.
-8. **Given** a constructed engine, **When** the author uses key_click / key_down / key_up with friendly key names and modifiers, **Then** the device receives the corresponding HID actions; key_click performs down→up with an inter-key interval.
+7. **Given** a constructed engine, **When** the author calls left or right button down / up at the current position, **Then** the corresponding mouse button is pressed or released without an automatic paired release (caller owns pairing); these are distinct from full clicks.
+8. **Given** a constructed engine, **When** the author calls move-and-click to a target, **Then** the pointer moves (per humanize rules) then clicks.
+9. **Given** a constructed engine, **When** the author uses key_click / key_down / key_up with friendly key names and modifiers, **Then** the device receives the corresponding HID actions; key_click performs down→up with an inter-key interval.
 
 ---
 
@@ -104,6 +105,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 - Calling `ocr` or `yolo` capability APIs raises `NotImplementedError` (importable stubs in MVP; full behavior deferred).
 - Releasing capture then grabbing again: `grab()` MUST re-initialize the same backend and succeed.
 - After `close()` (or exiting a `with` block), further use of that engine's capture/control MUST fail clearly; a new `NGE2` instance is required.
+- If a mouse button is left down when `close()` runs, STOP on the device MUST release held buttons; callers SHOULD still pair down/up in normal scripts.
 
 ## Requirements *(mandatory)*
 
@@ -116,7 +118,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 - **FR-005**: When `control_mode` is `0` or `1`, construction MUST fail immediately as not implemented (APIs reserved for later). When `control_mode` is `2`, construction MUST auto-discover an ESP32-S3 serial port and MUST fail construction if none is found. If another `NGE2` instance in the same process already holds that serial port, a subsequent construction with `control_mode=2` MUST fail immediately with a clear actionable error (port/device busy).
 - **FR-006**: Each `NGE2` instance MUST own its own `capture` lifecycle (not a process-global singleton).
 - **FR-007**: `capture` MUST support grab full first-display frame and grab by optional region; return type MUST be a BGR image array. Region coordinates MUST be screen physical pixels. Capture MUST provide a release operation for the backend. After release, a subsequent `grab()` on the same engine MUST recreate the same backend and succeed.
-- **FR-008**: `control` in this feature MUST implement hardware HID mode only (ESP32-S3), with mouse move, left/right click at current position with hold (default when omitted), move-and-click, key_click (down→up with interval, modifiers supported), key_down, and key_up. Friendly key names MUST map to HID Usage IDs equivalently to the established keymap contract from the prior nge toolkit.
+- **FR-008**: `control` in this feature MUST implement hardware HID mode only (ESP32-S3), with mouse move, left/right click at current position with hold (default when omitted), left/right mouse button down and up at current position (no automatic pair; distinct from full click), move-and-click, key_click (down→up with interval, modifiers supported), key_down, and key_up. Friendly key names MUST map to HID Usage IDs equivalently to the established keymap contract from the prior nge toolkit. Button down/up MUST use the HID `BTN` line command; full clicks MAY continue to use `CLK`.
 - **FR-009**: When `humanize` is `True`, moves MUST use internally generated human-like paths (`geom` is internal-only). When `humanize` is `False`, moves MUST be instantaneous and MUST ignore duration and spread.
 - **FR-010**: With `hwnd` set, move/click target coordinates MUST be client-relative; conversion MUST use Win32 client rect + client-to-screen. Without `hwnd`, coordinates MUST be screen absolute.
 - **FR-011**: `window` MUST expose the bound hwnd (if any), window title, and client visual region (Win32 client area).
@@ -141,7 +143,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 
 - **SC-001**: A script author can construct an engine with a resource directory and obtain a BGR full-screen frame in under 5 seconds on a typical Windows desktop (excluding first-time dependency install).
 - **SC-002**: With a connected ESP32-S3, construction with default control mode succeeds; without a device, construction fails with an actionable error in 100% of attempts.
-- **SC-003**: Authors can complete the sequence move → left_click → key_click for a documented sample script without changing package internals.
+- **SC-003**: Authors can complete the sequence move → left_click → key_click (and, when needed, left_down / left_up) for a documented sample script without changing package internals.
 - **SC-004**: With a bound hwnd, client-relative moves land within the intended client region under 100%/125%/150% display scaling (physical-pixel correctness).
 - **SC-005**: Constructing with control_mode 0 or 1 fails before any HID or capture side effects beyond DPI declaration.
 - **SC-006**: CI pure-logic suite (mocked I/O) passes without a physical device or interactive desktop session.
@@ -149,6 +151,7 @@ A script author relies on package logging (console + file, level via `NGE_LOG_LE
 ## Assumptions
 
 - Hold default when omitted for clicks matches prior toolkit behavior: random human-like hold roughly 45–110 ms unless an explicit hold (seconds) is passed.
+- Mouse button down/up APIs do not move the pointer; they act at the current pointer position only (same as left_click / right_click).
 - Key-click inter-press interval uses a short human-like delay consistent with the prior toolkit (on the order of tens of milliseconds).
 - Default log file path is under the process cwd (e.g. `nge.log`) unless otherwise set via a documented logger helper.
 - `grab(region=...)` always uses **screen** physical pixels, even when an hwnd is bound.

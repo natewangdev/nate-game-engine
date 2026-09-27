@@ -38,6 +38,10 @@ def test_clicks_and_keys(tmp_path):
     eng = _eng(tmp_path, t, humanize=False)
     eng.control.left_click(hold=0.05)
     eng.control.right_click(hold=0.05)
+    eng.control.left_down()
+    eng.control.left_up()
+    eng.control.right_down()
+    eng.control.right_up()
     eng.control.move_and_click(1, 2, hold=0.05)
     eng.control.key_down("a")
     eng.control.key_up("a")
@@ -45,6 +49,8 @@ def test_clicks_and_keys(tmp_path):
     eng.control.key_click("ctrl", "c")
     joined = "\n".join(t.commands)
     assert "CLK L" in joined and "CLK R" in joined
+    assert "BTN L 1" in joined and "BTN L 0" in joined
+    assert "BTN R 1" in joined and "BTN R 0" in joined
     assert "KD " in joined and "KU " in joined and "KP " in joined
     assert "MOD " in joined
     eng.close()
