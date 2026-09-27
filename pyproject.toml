@@ -4,6 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "nate-game-engine"
+# Placeholder for local/dev; release tags (vX.Y.Z) override this in CI.
 version = "0.1.0"
 description = "Nate Game Engine: Python toolkit for game scripting (input, capture, vision)."
 readme = "README.md"
