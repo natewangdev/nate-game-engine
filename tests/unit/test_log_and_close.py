@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from fakes import FakeCapture, FakeTransport
+from fakes import FakeCapture, FakeTransport, vision_factories
 from nge2._engine import NGE2
 from nge2._errors import ClosedError
 from nge2.log import add_file_logging, get_logger
@@ -23,6 +23,7 @@ def test_close_and_with(tmp_path):
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: FakeTransport(port="CLOSE1"),
         log_dir=logs,
+        **vision_factories(),
     ) as eng:
         eng.control.move(1, 1)
     with NGE2(
@@ -30,6 +31,7 @@ def test_close_and_with(tmp_path):
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: FakeTransport(port="CLOSE1"),
         log_dir=logs,
+        **vision_factories(),
     ) as _:
         pass
     eng3 = NGE2(
@@ -37,6 +39,7 @@ def test_close_and_with(tmp_path):
         capture_factory=lambda b: FakeCapture(b),
         transport_factory=lambda: FakeTransport(port="CLOSE2"),
         log_dir=logs,
+        **vision_factories(),
     )
     eng3.close()
     with __import__("pytest").raises(ClosedError):

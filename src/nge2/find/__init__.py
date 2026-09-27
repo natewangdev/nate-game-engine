@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from nge2._errors import FindError
+from nge2._vision import grab_search, to_move_coords, validate_region
 from nge2.log import get_logger
 
 if TYPE_CHECKING:
@@ -102,7 +103,6 @@ def _nms_matches(
     candidates: list[tuple[float, int, int, int, int]],
     iou_thresh: float = _NMS_IOU,
 ) -> list[tuple[float, int, int, int, int]]:
-    """``(score, left, top, width, height)`` → non-overlapping, score desc."""
     ordered = sorted(candidates, key=lambda c: c[0], reverse=True)
     kept: list[tuple[float, int, int, int, int]] = []
     for score, left, top, w, h in ordered:
@@ -139,66 +139,6 @@ class Find:
             raise FileNotFoundError(f"Template not found: {p}")
         return p
 
-    def _validate_region(
-        self, region: tuple[int, int, int, int] | None
-    ) -> tuple[int, int, int, int] | None:
-        if region is None:
-            return None
-        if len(region) != 4:
-            raise FindError(f"Invalid region (need 4 ints): {region!r}")
-        x1, y1, x2, y2 = (int(v) for v in region)
-        if x2 <= x1 or y2 <= y1:
-            raise FindError(f"Invalid region (empty): {region!r}")
-        return x1, y1, x2, y2
-
-    def _search_screen_rect(
-        self,
-        region: tuple[int, int, int, int] | None,
-        frame_w: int,
-        frame_h: int,
-    ) -> tuple[int, int, int, int]:
-        """Return search rect in screen pixels ``(l, t, r, b)`` clipped to frame."""
-        client = self._window.client_region
-        if region is None:
-            if client is not None:
-                l, t, r, b = client.screen
-            else:
-                l, t, r, b = 0, 0, frame_w, frame_h
-        else:
-            x1, y1, x2, y2 = region
-            if client is not None:
-                sl, st = self._window.client_to_screen(x1, y1)
-                sr, sb = self._window.client_to_screen(x2, y2)
-                l, t, r, b = int(sl), int(st), int(sr), int(sb)
-            else:
-                l, t, r, b = x1, y1, x2, y2
-
-        l = max(0, min(int(l), frame_w))
-        r = max(0, min(int(r), frame_w))
-        t = max(0, min(int(t), frame_h))
-        b = max(0, min(int(b), frame_h))
-        if r <= l or b <= t:
-            raise FindError("Search region is empty after clipping to frame")
-        return l, t, r, b
-
-    def _to_move_coords(self, screen_x: float, screen_y: float) -> tuple[int, int]:
-        if self._window.hwnd is not None:
-            cx, cy = self._window.screen_to_client(screen_x, screen_y)
-            return int(round(cx)), int(round(cy))
-        return int(round(screen_x)), int(round(screen_y))
-
-    def _grab_search(
-        self, region: tuple[int, int, int, int] | None
-    ) -> tuple[np.ndarray, int, int]:
-        """Fresh full grab, crop search area; return ``(crop, screen_l, screen_t)``."""
-        frame = self._capture.grab(region=None)
-        h, w = frame.shape[:2]
-        l, t, r, b = self._search_screen_rect(region, w, h)
-        crop = frame[t:b, l:r]
-        if crop.size == 0:
-            raise FindError("Search crop is empty")
-        return crop, l, t
-
     def find_image(
         self,
         path: str | Path,
@@ -228,11 +168,11 @@ class Find:
     ) -> list[Match]:
         import cv2
 
-        region = self._validate_region(region)
+        region = validate_region(region)
         tmpl_path = self._resolve_template(path)
         template = _imread_bgr(tmpl_path)
         th, tw = template.shape[:2]
-        crop, off_x, off_y = self._grab_search(region)
+        crop, off_x, off_y = grab_search(self._capture, self._window, region)
         ch, cw = crop.shape[:2]
         if th > ch or tw > cw:
             log.debug("Template larger than search region (%sx%s > %sx%s)", tw, th, cw, ch)
@@ -246,7 +186,7 @@ class Find:
             left, top = int(max_loc[0]), int(max_loc[1])
             cx = off_x + left + tw / 2.0
             cy = off_y + top + th / 2.0
-            mx, my = self._to_move_coords(cx, cy)
+            mx, my = to_move_coords(self._window, cx, cy)
             return [
                 Match(x=mx, y=my, score=float(max_val), width=tw, height=th),
             ]
@@ -260,7 +200,7 @@ class Find:
         for score, left, top, w, h in kept:
             cx = off_x + left + w / 2.0
             cy = off_y + top + h / 2.0
-            mx, my = self._to_move_coords(cx, cy)
+            mx, my = to_move_coords(self._window, cx, cy)
             out.append(Match(x=mx, y=my, score=score, width=w, height=h))
         return out
 
@@ -275,8 +215,8 @@ class Find:
         rgb = _parse_color(color)
         if tolerance < 0:
             raise FindError(f"Invalid tolerance: {tolerance}")
-        region = self._validate_region(region)
-        crop, off_x, off_y = self._grab_search(region)
+        region = validate_region(region)
+        crop, off_x, off_y = grab_search(self._capture, self._window, region)
 
         target_bgr = np.array([rgb[2], rgb[1], rgb[0]], dtype=np.int16)
         diff = np.abs(crop.astype(np.int16) - target_bgr)
@@ -286,10 +226,9 @@ class Find:
             return [] if multi else None
 
         if not multi:
-            # First hit in row-major order (numpy where is row-major).
             sx = off_x + int(xs[0])
             sy = off_y + int(ys[0])
-            mx, my = self._to_move_coords(sx, sy)
+            mx, my = to_move_coords(self._window, sx, sy)
             return ColorMatch(x=mx, y=my, color=rgb)
 
         hits: list[ColorMatch] = []
@@ -297,7 +236,7 @@ class Find:
         for i in range(n):
             sx = off_x + int(xs[i])
             sy = off_y + int(ys[i])
-            mx, my = self._to_move_coords(sx, sy)
+            mx, my = to_move_coords(self._window, sx, sy)
             hits.append(ColorMatch(x=mx, y=my, color=rgb))
         return hits
 

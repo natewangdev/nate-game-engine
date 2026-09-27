@@ -59,3 +59,5 @@ logs/
 
 # Smoke / local vision artifacts
 _find_smoke_tmpl.png
+/models/
+examples/models/*.onnx

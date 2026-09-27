@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import pytest
 
-from fakes import FakeCapture, FakeTransport
+from fakes import FakeCapture, FakeTransport, vision_factories
 from nge2._engine import NGE2
 from nge2._errors import FindError
 from nge2.find import Find, Match
@@ -42,6 +42,7 @@ def _engine(tmp_path, frame: np.ndarray, hwnd=None):
         transport_factory=lambda: FakeTransport(),
         hwnd=hwnd,
         log_dir=tmp_path / "logs",
+        **vision_factories(),
     ), cap
 
 
@@ -103,7 +104,8 @@ def test_find_images_nms(tmp_path):
         # Centers: left+tw/2, top+th/2 → round(20+7.5)=28, round(10+7.5)=18
         assert centers == [(28, 18), (108, 18)]
         blank = np.zeros((15, 15, 3), dtype=np.uint8)
-        blank[0, 0] = (1, 2, 3)
+        blank[:8, :8] = (0, 0, 255)
+        blank[8:, 8:] = (0, 255, 0)
         _save_template(tmp_path / "blankish.png", blank)
         assert engine.find.find_images("blankish.png", threshold=0.95) == []
     finally:
