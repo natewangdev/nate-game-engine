@@ -54,6 +54,14 @@ def _resolve_optional(resource_dir: Path, path: str | Path | None) -> Path | Non
 class NGE2:
     """Nate Game Engine instance."""
 
+    resource_dir: Path
+    window: Window
+    find: Find
+    log: Any
+    ocr: Ocr
+    yolo: Yolo
+    log_dir: Path
+
     def __init__(
         self,
         resource_dir: str | Path,
