@@ -24,11 +24,17 @@ def _configure_root() -> None:
     global _configured
     if _configured:
         return
-    handler = logging.StreamHandler()
-    handler.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATEFMT))
     root = logging.getLogger("nge")
-    root.handlers.clear()
-    root.addHandler(handler)
+    # Do not clear existing handlers — hosts (e.g. NGE-STUDIO UI) may already
+    # have attached bridges; wiping them drops live logs for the whole process.
+    has_stream = any(
+        isinstance(h, logging.StreamHandler) and not isinstance(h, logging.FileHandler)
+        for h in root.handlers
+    )
+    if not has_stream:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter(_LOG_FORMAT, datefmt=_LOG_DATEFMT))
+        root.addHandler(handler)
     root.setLevel(_DEFAULT_LEVEL)
     root.propagate = False
     _configured = True
