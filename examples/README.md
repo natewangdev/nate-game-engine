@@ -51,6 +51,18 @@ uv run python examples/log_smoke.py
 Writes `{LOG_DIR}/{YYYY-MM-DD}/nge-NNN.log` and on ERROR a JPEG under `screenshot/`.
 Still needs ESP32-S3 for `NGE2` construct.
 
+## Window find / activate / topmost / move
+
+Edit constants in `examples/window_smoke.py` (`TITLE_QUERY`, `HWND`, `DO_*`, …), then:
+
+```powershell
+uv run python examples/window_smoke.py
+```
+
+Lists visible top-level windows matching a title substring, then optionally
+activates / pins / moves the first match (or the bound hwnd). Needs ESP32-S3 for
+`NGE2` construct. Library tests: `tests/unit/test_window_ops.py` (fakes, no desktop).
+
 ## Find image / color
 
 Edit constants in `examples/find_smoke.py` (`TEMPLATE_REGION`, `HWND`, …), then:
