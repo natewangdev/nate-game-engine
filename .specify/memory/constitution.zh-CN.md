@@ -46,6 +46,11 @@
 ### V. 语义化版本与兼容性
 
 - 已发布包的版本遵循 SemVer（`MAJOR.MINOR.PATCH`）。
+- **git tag**（`vMAJOR.MINOR.PATCH`，可含预发布/构建后缀）是已发布版本的**唯一事实来源**。
+  本地 `pyproject.toml` 的 version 可为占位；CI 在构建前按 tag 注入正式版本。
+- 已发布产物**必须**由仓库的发版 CI 产出（GitHub Release 资源，并上传到公共 PyPI 项目
+  `nate-game-engine`）。不得对 CI 已负责的同一 tag 另行手发冲突构建。
+- 已在 PyPI 或已发布 GitHub Release 上存在的版本号**不得**复用或覆盖；修正须打新 tag。
 - 对已文档化公开 API 的破坏性变更须提升 MAJOR、写入变更说明，并在功能规格/计划中明确指出。
 - 优先加性演进（带默认值的新参数、新模块），避免静默行为变化。在可行时，弃用须有文档化的
   宽限期。
@@ -103,4 +108,4 @@
 - 不确定某规则是否适用时，优先更窄的公开 API、在全量默认依赖集之外更少新增依赖、更强的
   副作用隔离。
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26
+**Version**: 1.3.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-30

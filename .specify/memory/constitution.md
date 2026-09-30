@@ -59,6 +59,14 @@ Agents executing Spec Kit workflows MUST use this English file as the sole autho
 ### V. Semantic Versioning & Compatibility
 
 - Versioning follows SemVer (`MAJOR.MINOR.PATCH`) for the published package.
+- The **git tag** (`vMAJOR.MINOR.PATCH`, optional pre-release/build suffix) is the sole source of
+  truth for a published version. Local `pyproject.toml` version may be a placeholder; CI injects
+  the tag before build.
+- Published artifacts MUST be produced by the repository’s release CI (GitHub Release assets and
+  upload to the public PyPI project `nate-game-engine`). Do not hand-publish a conflicting build
+  for a tag that CI already owns.
+- A version that already exists on PyPI or as a published GitHub Release MUST NOT be reused or
+  overwritten. Cut a new tag for corrections.
 - Breaking changes to documented public API require a MAJOR bump, a changelog note, and an
   explicit callout in the feature spec/plan.
 - Prefer additive evolution (new parameters with defaults, new modules) over silent behavior
@@ -126,4 +134,4 @@ Agents executing Spec Kit workflows MUST use this English file as the sole autho
 - When unsure whether a rule applies, prefer the narrower public API, fewer dependencies
   beyond the full default set, and stronger side-effect isolation.
 
-**Version**: 1.2.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-26
+**Version**: 1.3.0 | **Ratified**: 2026-09-26 | **Last Amended**: 2026-09-30
