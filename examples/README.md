@@ -75,7 +75,25 @@ Grabs the screen, saves a crop as a self-template under `resource_dir`, then run
 `find_image` / `find_images` (and optional `find_color`). Needs ESP32-S3 for construct.
 Library tests: `tests/unit/test_find.py` (FakeCapture, no hardware).
 
-## YOLO / OCR
+### Find image with wait/poll
+
+```powershell
+uv run python examples/find_wait_smoke.py
+```
+
+Same self-template flow, but calls `find_image(..., timeout_ms=..., interval_ms=...)`.
+Edit `TIMEOUT_MS` / `INTERVAL_MS` in the script. Library: `tests/unit/test_vision_wait.py`.
+
+## OCR find_text (wait/poll)
+
+```powershell
+uv run python examples/find_text_smoke.py
+```
+
+Edit `TEXT`, `REGION`, `MULTI`, `TIMEOUT_MS` (default poll 5s), `INTERVAL_MS` (default 1000).
+Returns first `OcrLine` or `None` (`multi=True` → list). Needs ESP32-S3 + YOLO model path for construct.
+
+## YOLO / OCR (one-shot)
 
 - **OCR**: RapidOCR (default models; no det/rec paths). Optional `ocr_kwargs`.
 - **YOLO**: place ONNX under `examples/models/` (placeholder stub included; replace with real YOLOv8-detect export).
@@ -85,6 +103,15 @@ uv run python examples/yolo_smoke.py
 uv run python examples/ocr_smoke.py
 ```
 
+### YOLO detect with wait/poll
+
+```powershell
+uv run python examples/yolo_wait_smoke.py
+```
+
+Edit `TIMEOUT_MS` / `INTERVAL_MS`. Polls until non-empty detections or deadline (`[]` on miss).
+
 `NGE2` loads OCR (RapidOCR) + YOLO at construct. Other smoke scripts that construct
 `NGE2` need a YOLO model under their `resource_dir` (default `models/yolo.onnx`).
 Point `RESOURCE_DIR` at `examples/` or copy `examples/models` into your resource root.
+Wait/poll unit coverage: `tests/unit/test_vision_wait.py`.

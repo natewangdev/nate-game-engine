@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import time
+from collections.abc import Callable
+from typing import TYPE_CHECKING, TypeVar
 
 import numpy as np
 
@@ -11,6 +13,66 @@ from nge2._errors import FindError
 if TYPE_CHECKING:
     from nge2.capture import Capture
     from nge2.window import Window
+
+T = TypeVar("T")
+
+
+def _sleep(seconds: float) -> None:
+    """Sleep seam for unit tests."""
+    time.sleep(seconds)
+
+
+def _monotonic() -> float:
+    """Clock seam for unit tests."""
+    return time.monotonic()
+
+
+def validate_wait(timeout_ms: int, interval_ms: int) -> None:
+    """Validate timeout/interval pair per vision wait contract."""
+    try:
+        timeout_ms = int(timeout_ms)
+        interval_ms = int(interval_ms)
+    except (TypeError, ValueError) as exc:
+        raise FindError(f"Invalid timeout_ms/interval_ms: {timeout_ms!r}, {interval_ms!r}") from exc
+    if timeout_ms < 0:
+        raise FindError(f"timeout_ms must be >= 0, got {timeout_ms}")
+    if timeout_ms == 0:
+        return
+    if interval_ms <= 0:
+        raise FindError(f"interval_ms must be > 0 when timeout_ms > 0, got {interval_ms}")
+    if timeout_ms < interval_ms:
+        raise FindError(
+            f"timeout_ms ({timeout_ms}) must be >= interval_ms ({interval_ms})"
+        )
+
+
+def poll_until(
+    attempt: Callable[[], T],
+    *,
+    timeout_ms: int,
+    interval_ms: int,
+    is_success: Callable[[T], bool],
+) -> T:
+    """Run ``attempt`` once, or poll until success / wall-clock deadline.
+
+    When ``timeout_ms == 0``, returns the first attempt result (interval ignored).
+    When ``timeout_ms > 0``, retries until ``is_success(result)`` or the deadline;
+    returns the last attempt result on timeout.
+    """
+    validate_wait(timeout_ms, interval_ms)
+    if timeout_ms == 0:
+        return attempt()
+
+    deadline = _monotonic() + timeout_ms / 1000.0
+    while True:
+        result = attempt()
+        if is_success(result):
+            return result
+        now = _monotonic()
+        if now >= deadline:
+            return result
+        remaining = deadline - now
+        _sleep(min(interval_ms / 1000.0, remaining))
 
 
 def validate_region(

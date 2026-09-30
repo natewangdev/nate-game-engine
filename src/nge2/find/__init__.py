@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from nge2._errors import FindError
-from nge2._vision import grab_search, to_move_coords, validate_region
+from nge2._vision import grab_search, poll_until, to_move_coords, validate_region
 from nge2.log import get_logger
 
 if TYPE_CHECKING:
@@ -145,10 +145,21 @@ class Find:
         *,
         threshold: float = DEFAULT_THRESHOLD,
         region: tuple[int, int, int, int] | None = None,
+        timeout_ms: int = 0,
+        interval_ms: int = 500,
     ) -> Match | None:
-        matches = self._match_all(path, threshold=threshold, region=region, multi=False)
-        return matches[0] if matches else None
+        def attempt() -> Match | None:
+            matches = self._match_all(
+                path, threshold=threshold, region=region, multi=False
+            )
+            return matches[0] if matches else None
 
+        return poll_until(
+            attempt,
+            timeout_ms=timeout_ms,
+            interval_ms=interval_ms,
+            is_success=lambda m: m is not None,
+        )
     def find_images(
         self,
         path: str | Path,

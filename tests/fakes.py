@@ -70,6 +70,7 @@ class FakeTransport:
 class FakeOcr:
     def __init__(self, *args, lines: list[OcrLine] | None = None, **kwargs) -> None:
         self.lines = list(lines or [])
+        self.line_queue: list[list[OcrLine]] | None = None
         self.recognize_calls = 0
         self.closed = 0
 
@@ -78,13 +79,50 @@ class FakeOcr:
             return
         self.closed += 1
 
-    def recognize(self, *, region=None) -> list[OcrLine]:
+    def recognize(self, *, region=None, min_score: float = 0.0) -> list[OcrLine]:
         if self.closed:
             from nge2._errors import ClosedError
 
             raise ClosedError("OCR is closed; create a new NGE2 instance")
         self.recognize_calls += 1
-        return list(self.lines)
+        if self.line_queue is not None and self.line_queue:
+            self.lines = list(self.line_queue.pop(0))
+        return [ln for ln in self.lines if ln.score >= min_score]
+
+    def find_text(
+        self,
+        text: str,
+        *,
+        region=None,
+        multi: bool = False,
+        timeout_ms: int = 0,
+        interval_ms: int = 1000,
+        min_score: float = 0.0,
+    ):
+        from nge2._errors import FindError
+        from nge2._vision import poll_until
+
+        if self.closed:
+            from nge2._errors import ClosedError
+
+            raise ClosedError("OCR is closed; create a new NGE2 instance")
+        if not isinstance(text, str) or not text.strip():
+            raise FindError("find_text query must be a non-blank string")
+        needle = text.casefold()
+
+        def attempt():
+            lines = self.recognize(region=region, min_score=min_score)
+            matched = [ln for ln in lines if needle in ln.text.casefold()]
+            if multi:
+                return matched
+            return matched[0] if matched else None
+
+        return poll_until(
+            attempt,
+            timeout_ms=timeout_ms,
+            interval_ms=interval_ms,
+            is_success=lambda r: (len(r) > 0) if multi else (r is not None),
+        )
 
 
 class FakeYolo:
@@ -92,6 +130,7 @@ class FakeYolo:
         self, *args, detections: list[Detection] | None = None, **kwargs
     ) -> None:
         self.detections = list(detections or [])
+        self.detect_queue: list[list[Detection]] | None = None
         self.detect_calls = 0
         self.closed = 0
 
@@ -101,16 +140,30 @@ class FakeYolo:
         self.closed += 1
 
     def detect(self, **kwargs) -> list[Detection]:
+        from nge2._vision import poll_until
+
         if self.closed:
             from nge2._errors import ClosedError
 
             raise ClosedError("YOLO is closed; create a new NGE2 instance")
-        self.detect_calls += 1
         conf = float(kwargs.get("conf", 0.25))
-        hits = [d for d in self.detections if d.score >= conf]
-        hits.sort(key=lambda d: d.score, reverse=True)
-        return hits
+        timeout_ms = int(kwargs.get("timeout_ms", 0))
+        interval_ms = int(kwargs.get("interval_ms", 500))
 
+        def attempt() -> list[Detection]:
+            self.detect_calls += 1
+            if self.detect_queue is not None and self.detect_queue:
+                self.detections = list(self.detect_queue.pop(0))
+            hits = [d for d in self.detections if d.score >= conf]
+            hits.sort(key=lambda d: d.score, reverse=True)
+            return hits
+
+        return poll_until(
+            attempt,
+            timeout_ms=timeout_ms,
+            interval_ms=interval_ms,
+            is_success=lambda dets: len(dets) > 0,
+        )
 
 def vision_factories(**kwargs):
     """Default test hooks so NGE2 construct does not need ONNX files."""

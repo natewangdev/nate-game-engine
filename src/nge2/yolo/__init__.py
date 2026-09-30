@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 from nge2._errors import ClosedError, ConstructError, FindError
-from nge2._vision import grab_search, to_move_coords, validate_region
+from nge2._vision import grab_search, poll_until, to_move_coords, validate_region
 from nge2.log import get_logger
 
 if TYPE_CHECKING:
@@ -148,8 +148,31 @@ class Yolo:
         iou: float = DEFAULT_IOU,
         region: tuple[int, int, int, int] | None = None,
         class_ids: list[int] | None = None,
+        timeout_ms: int = 0,
+        interval_ms: int = 500,
     ) -> list[Detection]:
         self._ensure_open()
+
+        def attempt() -> list[Detection]:
+            return self._detect_once(
+                conf=conf, iou=iou, region=region, class_ids=class_ids
+            )
+
+        return poll_until(
+            attempt,
+            timeout_ms=timeout_ms,
+            interval_ms=interval_ms,
+            is_success=lambda dets: len(dets) > 0,
+        )
+
+    def _detect_once(
+        self,
+        *,
+        conf: float,
+        iou: float,
+        region: tuple[int, int, int, int] | None,
+        class_ids: list[int] | None,
+    ) -> list[Detection]:
         region = validate_region(region)
         crop, off_x, off_y = grab_search(self._capture, self._window, region)
         ch, cw = crop.shape[:2]

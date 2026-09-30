@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
 from nge2._errors import ClosedError, ConstructError, FindError
-from nge2._vision import grab_search, to_move_coords, validate_region
+from nge2._vision import grab_search, poll_until, to_move_coords, validate_region
 from nge2.log import get_logger
 
 if TYPE_CHECKING:
@@ -121,6 +121,40 @@ class Ocr:
             )
         lines.sort(key=lambda ln: ln.score, reverse=True)
         return lines
+
+    def find_text(
+        self,
+        text: str,
+        *,
+        region: tuple[int, int, int, int] | None = None,
+        multi: bool = False,
+        timeout_ms: int = 0,
+        interval_ms: int = 1000,
+        min_score: float = 0.0,
+    ) -> OcrLine | None | list[OcrLine]:
+        """Find OCR lines whose text contains ``text`` (case-insensitive substring).
+
+        ``multi=False`` → first match or ``None``; ``multi=True`` → all matches
+        (empty list if none). Optional wall-clock poll via ``timeout_ms``.
+        """
+        self._ensure_open()
+        if not isinstance(text, str) or not text.strip():
+            raise FindError("find_text query must be a non-blank string")
+        needle = text.casefold()
+
+        def attempt() -> OcrLine | None | list[OcrLine]:
+            lines = self.recognize(region=region, min_score=min_score)
+            matched = [ln for ln in lines if needle in ln.text.casefold()]
+            if multi:
+                return matched
+            return matched[0] if matched else None
+
+        return poll_until(
+            attempt,
+            timeout_ms=timeout_ms,
+            interval_ms=interval_ms,
+            is_success=lambda r: (len(r) > 0) if multi else (r is not None),
+        )
 
 
 __all__ = ["Ocr", "OcrLine"]
