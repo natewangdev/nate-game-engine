@@ -82,13 +82,14 @@ Notes:
 
 - Consumer needs Windows + Python 3.11+; real HID still needs ESP32-S3.
 - Prefer an absolute path (or a stable relative path) to this repo.
-- For a fixed released version (not live editing), use a git tag instead — see
-  [Install from a tagged release](#install-from-a-tagged-release).
+- For a fixed released version (not live editing), install from PyPI or a git tag — see
+  [Install a released version](#install-a-released-version).
 
 ## Release (GitHub Actions)
 
-GitHub Packages **does not** host Python/PyPI packages. This repo uses **tag-driven
-releases** (approach B): the git tag is the source of truth for the version.
+This repo uses **tag-driven releases**: the git tag is the source of truth for the
+version. Pushing a `v*` tag builds the package, creates a GitHub Release, and
+publishes to [PyPI](https://pypi.org/) via OIDC Trusted Publisher (`environment: pypi`).
 
 ```powershell
 # After merge to main (or on the commit you want to ship):
@@ -102,21 +103,22 @@ Workflow `.github/workflows/publish.yml` will:
 2. Inject that into `pyproject.toml` (`uv version`)
 3. `uv build`
 4. Create a GitHub Release and attach `dist/*`
+5. Publish to PyPI (`pypa/gh-action-pypi-publish`, no API token)
 
 `pyproject.toml` / local `version` can stay at a placeholder; **published** builds
-always take the tag. Do not re-use a tag that already has a Release.
+always take the tag. Do not re-use a tag / version that already exists on PyPI or
+as a GitHub Release.
 
-### Install from a tagged release
+### Install a released version
 
 ```powershell
-# Prefer: install from the git tag (source)
+# Prefer: public index
+uv add nate-game-engine
+# pip install nate-game-engine
+
+# Alternatives: git tag, or download the `.whl` from the Release assets
 uv add "nate-game-engine @ git+https://github.com/natewangdev/nate-game-engine@v0.1.1"
-
-# Or: download the `.whl` from the Release assets page / URL
 ```
-
-For a public index (`pip install nate-game-engine`), publish to [PyPI](https://pypi.org/)
-separately; the same tag → inject → build flow still applies.
 
 ## License
 
