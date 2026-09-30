@@ -1,11 +1,12 @@
 # Tag-driven release (approach B):
 #   git tag v0.1.1 && git push origin v0.1.1
-# Injects VERSION from the tag into pyproject.toml, builds, then attaches
-# wheels/sdists to a GitHub Release.
+# Injects VERSION from the tag into pyproject.toml, builds, attaches
+# wheels/sdists to a GitHub Release, then publishes to PyPI via OIDC
+# Trusted Publisher (environment: pypi).
 #
-# Note: GitHub Packages has no PyPI registry. Consuming options:
-#   uv add "nate-game-engine @ git+https://github.com/<owner>/<repo>@v0.1.1"
-#   or install the wheel URL from the Release assets.
+# PyPI Trusted Publisher must match:
+#   Owner: natewangdev | Repository: nate-game-engine
+#   Workflow: publish.yml | Environment: pypi
 
 name: Publish
 
@@ -14,12 +15,13 @@ on:
     tags:
       - "v*"
 
-permissions:
-  contents: write
-
 jobs:
   publish:
     runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: write
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -55,3 +57,6 @@ jobs:
             dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1

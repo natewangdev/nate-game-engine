@@ -81,13 +81,12 @@ with nge2.NGE2(resource_dir=".", capture="dxcam") as engine:
 
 - 消费方需 Windows + Python 3.11+；真实 HID 仍需要 ESP32-S3。
 - 路径建议用绝对路径（或稳定的相对路径）指向本仓库。
-- 若要固定已发布版本（而非边改边用），请改用 git tag 安装 — 见
-  [从带 tag 的发版安装](#从带-tag-的发版安装)。
+- 若要固定已发布版本（而非边改边用），请改用 PyPI / git tag 安装 — 见
+  [安装已发布版本](#安装已发布版本)。
 
 ## 发版（GitHub Actions）
 
-GitHub Packages **不提供** Python/PyPI 仓库。本仓库采用 **tag 驱动发版**（方式 B）：
-**git tag 即为版本号的唯一来源**。
+本仓库采用 **tag 驱动发版**：**git tag 即为版本号的唯一来源**。推送 `v*` tag 后会构建包、创建 GitHub Release，并通过 OIDC Trusted Publisher（`environment: pypi`）发布到 [PyPI](https://pypi.org/)。
 
 ```powershell
 # 合并到 main（或选定要发布的 commit）之后：
@@ -101,21 +100,21 @@ git push origin v0.1.1
 2. 写入 `pyproject.toml`（`uv version`）
 3. 执行 `uv build`
 4. 创建 GitHub Release，并挂上 `dist/*`
+5. 发布到 PyPI（`pypa/gh-action-pypi-publish`，无需 API token）
 
 本地 `pyproject.toml` 的 `version` 可保持占位；**正式构建产物**一律以 tag 为准。
-已发布过的 tag / Release 不要复用。
+已发布过的 tag / PyPI 版本 / Release 不要复用。
 
-### 从带 tag 的发版安装
+### 安装已发布版本
 
 ```powershell
-# 推荐：按 git tag 安装（源码）
+# 推荐：公共索引
+uv add nate-game-engine
+# pip install nate-game-engine
+
+# 备选：按 git tag 安装，或从 Release 资源页下载 `.whl`
 uv add "nate-game-engine @ git+https://github.com/natewangdev/nate-game-engine@v0.1.1"
-
-# 或：从 Release 资源页 / URL 下载 `.whl`
 ```
-
-若需要公共索引（`pip install nate-game-engine`），请另行发布到 [PyPI](https://pypi.org/)；
-同样适用「tag → 注入版本 → 构建」流程。
 
 ## 许可证
 
