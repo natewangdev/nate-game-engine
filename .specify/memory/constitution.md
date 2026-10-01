@@ -33,9 +33,9 @@ Agents executing Spec Kit workflows MUST use this English file as the sole autho
 - Tests for pure logic MUST use fakes/mocks at the I/O boundary. Hardware-dependent checks
   are optional, explicitly marked (e.g. pytest markers), and never required for a green CI
   on a headless runner unless the feature’s own plan says otherwise.
-- Package domains (`capture`, `control`, `ocr`, `yolo`, `find`, `log`, `geom`, `window`)
-  stay separable at the API boundary so each can be reasoned about and tested in isolation
-  even when installed together.
+- Package domains (`capture`, `control`, `ocr`, `yolo`, `find`, `log`, `geom`, `window`,
+  `time`) stay separable at the API boundary so each can be reasoned about and tested in
+  isolation even when installed together.
 
 ### III. Test Discipline
 

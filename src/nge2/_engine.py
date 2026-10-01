@@ -21,6 +21,7 @@ from nge2.log import (
     save_error_screenshot,
 )
 from nge2.ocr import Ocr
+from nge2.time import Time
 from nge2.window import Window, primary_screen_size, set_process_dpi_aware
 from nge2.yolo import Yolo
 
@@ -122,6 +123,7 @@ class NGE2:
             capture=self._capture,
             window=self.window,
         )
+        self.time = Time()
         self.log = get_logger("engine")
 
         # OCR / YOLO — load before HID so failure does not hold the serial port.

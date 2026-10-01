@@ -111,6 +111,15 @@ uv run python examples/yolo_wait_smoke.py
 
 Edit `TIMEOUT_MS` / `INTERVAL_MS`. Polls until non-empty detections or deadline (`[]` on miss).
 
+## Time sleep / delay (no hardware)
+
+```powershell
+uv run python examples/time_smoke.py
+```
+
+Fixed and random millisecond delays via `from nge2.time import sleep`, `Time.sleep`, and
+optionally `engine.time` (`USE_ENGINE=True`). Unit coverage: `tests/unit/test_time.py`.
+
 `NGE2` loads OCR (RapidOCR) + YOLO at construct. Other smoke scripts that construct
 `NGE2` need a YOLO model under their `resource_dir` (default `models/yolo.onnx`).
 Point `RESOURCE_DIR` at `examples/` or copy `examples/models` into your resource root.
