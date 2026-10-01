@@ -26,8 +26,8 @@
   后端（如 HID 串口、截屏后端）；其余副作用仅在调用方显式触发动作时发生。
 - 纯逻辑测试**必须**在 I/O 边界使用假对象/mock。依赖硬件的检查可选，须显式标记
   （例如 pytest markers），除非该功能计划另有规定，否则不得成为无头 CI 变绿的硬性条件。
-- 包领域（`capture`、`control`、`ocr`、`yolo`、`find`、`log`、`geom`、`window`）在 API
-  边界保持可分离，即使一同安装也可单独推理与测试。
+- 包领域（`capture`、`control`、`ocr`、`yolo`、`find`、`log`、`geom`、`window`、`time`）
+  在 API 边界保持可分离，即使一同安装也可单独推理与测试。
 
 ### III. 测试纪律
 
