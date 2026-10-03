@@ -29,6 +29,18 @@ Edit constants in `examples/drag_smoke.py` (`DRAGS`, `HWND`, `BUTTON`, …), the
 uv run python examples/drag_smoke.py
 ```
 
+## Scroll (mouse wheel)
+
+Edit constants in `examples/scroll_smoke.py` (`MOVE_TO`, `SCROLLS`, `HWND`, …), then:
+
+```powershell
+uv run python examples/scroll_smoke.py
+```
+
+`SCROLLS` is a list of `(direction, notches)` with `direction` `"up"`|`"down"`.
+Optional `MOVE_TO` moves the pointer first; scroll itself does not move the mouse.
+Delta is clamped to ±127 (legacy nge).
+
 ## Control gestures (library)
 
 After `002-control-gestures`, `engine.control` also supports:
@@ -38,7 +50,8 @@ After `002-control-gestures`, `engine.control` also supports:
 - `double_click(x=None, y=None, ...)` (left only; same point, no spread)
 - `hotkey(*keys)` (alias of `key_click(*keys)`)
 
-Covered by `tests/contract/test_control_gestures.py` (no hardware). Hardware: `examples/drag_smoke.py`.
+Covered by `tests/contract/test_control_gestures.py` (no hardware). Hardware:
+`examples/drag_smoke.py`, `examples/scroll_smoke.py`.
 
 ## Logging
 
